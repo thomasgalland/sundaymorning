@@ -29,7 +29,7 @@
     $.sundayMorning = function(text, settings, callback) {
         var settings = $.extend({}, $.sundayMorning.defaults, settings);
         translate(settings, function(settings) {
-            getGoogleTranslation(text, settings, function(response) {
+            getServiceTranslation(text, settings, function(response) {
                 callback(response);
             });
         });
@@ -39,15 +39,17 @@
 
     $.fn.sundayMorningReset = function() {
         return this.each(function() {
-			 $(this).unbind('.sundayMorning');					  
-		});
-	}
-	
-	$.fn.sundayMorning = function(settings) {
+             $(this).unbind('.sundayMorning');                    
+        });
+    }
+    
+    $.fn.sundayMorning = function(settings) {
         var settings = $.extend({}, $.sundayMorning.defaults, settings);
         return this.each(function() {
             var $$ = $(this);
+
             var text = $$.html();
+
             var originalText = text;
             var originalLang = (settings.source == '') ? getSource($$) : settings.source;
             
@@ -56,14 +58,14 @@
             }
 
             if (settings.trigger) {        
-                //$$.unbind('.sundayMorning');		
+                //$$.unbind('.sundayMorning');      
                 $$.bind(settings.trigger+'.sundayMorning', function(evt) {
-					if (settings.ctrlKey != evt.ctrlKey) {
-						return false;	
-					}
-					if (settings.shiftKey != evt.shiftKey) {
-						return false;	
-					}
+                    if (settings.ctrlKey != evt.ctrlKey) {
+                        return false;   
+                    }
+                    if (settings.shiftKey != evt.shiftKey) {
+                        return false;   
+                    }
                     settings.menuLeft = evt.pageX;
                     settings.menuTop  = evt.pageY;
                     
@@ -85,7 +87,7 @@
                         contentReplacement($$, text, settings)
                     });
                     evt.preventDefault();
-					evt.stopPropagation();
+                    evt.stopPropagation();
                 });
             } else {
                 translate(settings, function(settings) {
@@ -97,20 +99,20 @@
 
     // ------------------------------------------------------
     
-    $.fn.sundayMorningDetection = function(callback) {
-        var settings = $.sundayMorning.defaults;
+    $.fn.sundayMorningDetection = function(settings, callback) {
+        var settings = $.extend({}, $.sundayMorning.defaults, settings);
         return this.each(function() {
             var $$ = $(this);
             var text = $$.text();
-            getGoogleDetection(text, settings, function(response) {
+            getServiceDetection(text, settings, function(response) {
                 callback(response);                                    
             });
         });
     };
 
-    $.sundayMorningDetection = function(text, callback) {
-        var settings = $.sundayMorning.defaults;
-        getGoogleDetection(text, settings, function(response) {
+    $.sundayMorningDetection = function(text, settings, callback) {
+        var settings = $.extend({}, $.sundayMorning.defaults, settings);
+        getServiceDetection(text, settings, function(response) {
             callback(response);                                    
         });
     };
@@ -123,12 +125,12 @@
             var $$ = $(this);    
             //$$.unbind('.sundayMorning');
             $$.bind('dblclick.sundayMorning', function(evt) {  
-				if (settings.ctrlKey != evt.ctrlKey) {
-					return false;	
-				}
-				if (settings.shiftKey != evt.shiftKey) {
-					return false;	
-				}
+                if (settings.ctrlKey != evt.ctrlKey) {
+                    return false;   
+                }
+                if (settings.shiftKey != evt.shiftKey) {
+                    return false;   
+                }
                 if (window.getSelection) { 
                     var text = window.getSelection(); 
                 } else if (document.getSelection) { 
@@ -136,7 +138,7 @@
                 } else { 
                     var text = document.selection.createRange().text; 
                 }
-				text = text.toString();
+                text = text.toString();
                 if (text.replace(/\W|\d/g, '') == '') {
                     return false;
                 }
@@ -145,7 +147,7 @@
                 settings.menuTop  = menuTop  = evt.pageY;
 
                 translate(settings, function(settings) {
-                    getGoogleTranslation(text, settings, function(response) {
+                    getServiceTranslation(text, settings, function(response) {
                         var bubble;
                         bubble = $('<div class="sundayMorning-bubble"><span><b>'+ text +'</b> : '+ response.translation +'</span></div>'); 
                         bubble.css({ 
@@ -162,7 +164,7 @@
                     });
                 });
                 evt.preventDefault();
-				evt.stopPropagation();
+                evt.stopPropagation();
             });
         });
     };
@@ -208,15 +210,16 @@
     }
     
     $.sundayMorning.defaults = {
-        apiKey:      'notsupplied',
-        delay:       3000,
-        menuTop:     50,
-        menuLeft:    50,
-        trigger:     false,
-        source:      '',
-        destination: '',
-		ctrlKey:     false,
-		shiftKey:    false,
+        apiKey:             'notsupplied',
+        serviceName:        'bing',
+        delay:              3000,
+        menuTop:            50,
+        menuLeft:           50,
+        trigger:            false,
+        source:             '',
+        destination:        '',
+        ctrlKey:            false,
+        shiftKey:           false,
         destinationFallback:$.sundayMorning.translatable
     };
         
@@ -248,6 +251,29 @@
         }
         callback(settings);
     }
+
+    function getServiceTranslation(text, settings, callback) {
+        switch(settings.serviceName){
+            case "google" :
+                return getGoogleTranslation(text, settings, callback);
+                break;
+            case "bing" :
+                return getBingTranslation(text, settings, callback);
+                break;
+            default:
+                alert("Service name ("+settings.serviceName+") doesn't exist");
+        }
+    }
+
+    function getServiceDetection(text, settings, callback) {
+        switch(settings.serviceName){
+            case "google" :
+                return getGoogleDetection(text, settings, callback);
+                break;
+            default:
+                alert("Service name ("+settings.serviceName+") doesn't exist");
+        }
+    }
     
     function getGoogleDetection(text, settings, callback) {
         $.ajax({
@@ -265,11 +291,11 @@
                     language:     response.responseData.language,
                     isReliable: response.responseData.isReliable,
                     confidence: response.responseData.confidence
-                }); 
+                });
             }
         });                                                       
     };
-    
+
     function getGoogleTranslation(text, settings, callback) {
         $.ajax({
             url: 'http://ajax.googleapis.com/ajax/services/language/translate',
@@ -291,10 +317,32 @@
             }
         });                                                       
     };
+
+    function getBingTranslation(text, settings, callback) {
+        $.ajax({
+            url: "http://api.bing.net/json.aspx?JsonCallback=?",
+            dataType: 'jsonp',
+            data: {
+                "Query": ''+ text.substr(0, 5000), 
+                "Sources" : "translation",
+                "AppId": settings.apiKey,
+                "Translation.SourceLanguage": settings.source,
+                "Translation.TargetLanguage": settings.destination,
+                "JsonType": "callback"
+            },
+            success: function(response) { 
+                callback({
+                    translation: response.SearchResponse.Translation.Results[0].TranslatedTerm || '',
+                    source:      settings.source || '',
+                    destination: settings.destination
+                }); 
+            }
+        });                                                       
+    };
     
     function contentReplacement($$, text, settings) {
         $$.fadeTo('fast', 0.1, function() {    
-            getGoogleTranslation(text, settings, function(response) {
+            getServiceTranslation(text, settings, function(response) {
                 $$.html(response.translation);
                 $$.attr('lang', response.destination);
                 $$.fadeTo('fast', 1);
