@@ -277,20 +277,17 @@
     
     function getGoogleDetection(text, settings, callback) {
         $.ajax({
-            url: 'http://ajax.googleapis.com/ajax/services/language/detect',
+            url: 'https://www.googleapis.com/language/translate/v2/detect?callback=?',
             dataType: 'jsonp',
-            data: { q: ''+ text.substr(0, 5000), 
-                    v: '1.0',
-                    key: settings.apiKey },
-            success: function(response) { 
-                if (response.responseStatus != 200) {
-                    alert('Translation error: '+response.responseDetails);
-                    return false;
-                }
+            data: { 
+                q: ''+ text.substr(0, 5000), 
+                key: settings.apiKey
+            },
+            success: function(response) {
                 callback({
-                    language:     response.responseData.language,
-                    isReliable: response.responseData.isReliable,
-                    confidence: response.responseData.confidence
+                    language:   response.data.detections[0][0].language,
+                    isReliable: response.data.detections[0][0].isReliable,
+                    confidence: response.data.detections[0][0].confidence
                 });
             }
         });                                                       
@@ -298,7 +295,7 @@
 
     function getGoogleTranslation(text, settings, callback) {
         $.ajax({
-            url: 'https://www.googleapis.com/language/translate/v2',
+            url: 'https://www.googleapis.com/language/translate/v2?callback=?',
             dataType: 'jsonp',
             data: {
                 q: ''+ text.substr(0, 5000), 
