@@ -298,20 +298,18 @@
 
     function getGoogleTranslation(text, settings, callback) {
         $.ajax({
-            url: 'http://ajax.googleapis.com/ajax/services/language/translate',
+            url: 'https://www.googleapis.com/language/translate/v2',
             dataType: 'jsonp',
-            data: { q: ''+ text.substr(0, 5000), 
-                    v: '1.0',
-                    key: settings.apiKey,
-                    langpair: settings.source +'|'+ settings.destination },
+            data: {
+                q: ''+ text.substr(0, 5000), 
+                key: settings.apiKey,
+                source: settings.source,
+                target: settings.destination
+            },
             success: function(response) { 
-                if (response.responseStatus != 200) {
-                    alert('Translation error: '+response.responseDetails);
-                    return false;
-                }
                 callback({
-                    translation: response.responseData.translatedText   || '',
-                    source:      response.responseData.detectedSourceLanguage || '',
+                    translation: response.data.translations[0].translatedText   || '',
+                    source:      settings.source,
                     destination: settings.destination
                 }); 
             }
@@ -333,7 +331,7 @@
             success: function(response) { 
                 callback({
                     translation: response.SearchResponse.Translation.Results[0].TranslatedTerm || '',
-                    source:      settings.source || '',
+                    source:      settings.source,
                     destination: settings.destination
                 }); 
             }
